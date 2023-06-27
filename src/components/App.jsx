@@ -1,73 +1,73 @@
-import React, { Component } from 'react';
-import {Searchbar} from './Searchbar/Searchbar';
-import {Loader} from './Loader/Loader';
-import {ImageGallery} from './ImageGallery/ImageGallery';
-import {Button} from './Button/Button';
+import { useState, useEffect } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import { fetchImages } from './api';
+import { Searchbar } from './Searchbar/Searchbar';
+import { Loader } from './Loader/Loader';
+import { ImageGallery } from './ImageGallery/ImageGallery';
+import { Button } from './Button/Button';
 
-export class App extends Component {
-  state = {
-    searchQuery: '',
-    images: [],
-    page: 1,
-    loading: false,
-    totalPages: null,
-  };
+export const App = () => {
+  const [page, setPage] = useState(1);
+  const [images, setImages] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [totalPages, setTotalPages] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
-  async componentDidUpdate(_, prevState) {
-    const { searchQuery, page } = this.state;
-
-    if (prevState.searchQuery !== searchQuery || prevState.page !== page) {
-      this.setState({ loading: true });
-
+  useEffect(() => {
+    if (searchQuery === '') {
+      return;
+    }
+    async function fetchFoo() {
       try {
+        setLoading(true);
         const { responseImages, totalPages } = await fetchImages(
           searchQuery,
           page
         );
-        
+
         if (responseImages.length === 0) {
           toast.warn('Didn`t find anything, please change search query');
         }
 
-        this.setState(prevState => {
-          return { images: [...prevState.images, ...responseImages] };
-        }, this.setState({ totalPages }));
+        setImages(prevState => [...prevState, ...responseImages]);
+        setTotalPages(totalPages);
       } catch (error) {
         toast.error('we have a problem');
+      } finally {
+        setLoading(false);
       }
-
-      this.setState({ loading: false });
     }
-  }
+    fetchFoo();
+  }, [searchQuery, page]);
 
-  handleFormSubmit = async searchQuery => {
-    this.setState({ searchQuery, images: [], page: 1 });
+  const handleFormSubmit = query => {
+    if (searchQuery === query) {
+      toast.warn('Please change your search query');
+    } else {
+      setSearchQuery(query);
+      setImages([]);
+      setPage(1);
+    }
   };
 
-  incrementPage = () =>
-    this.setState(prevState => ({ page: prevState.page + 1 }));
+  const incrementPage = () => setPage(prevState => prevState + 1);
 
-  render() {
-    const { images, loading, page, totalPages } = this.state;
-    return (
-      <div
-        style={{
-          display: `grid`,
-          gridTemplateColumns: `1fr`,
-          gridGap: `16px`,
-          paddingBottom: `24px`,
-        }}
-      >
-        <Searchbar onSubmit={this.handleFormSubmit} />
-        {images.length > 0 && <ImageGallery images={images} />}
-        {loading && <Loader />}
-        {images.length !== 0 && totalPages !== page && !loading && (
-          <Button onClick={this.incrementPage} />
-        )}
-        <ToastContainer autoClose={3000} />
-      </div>
-    );
-  }
-}
+  return (
+    <div
+      style={{
+        display: `grid`,
+        gridTemplateColumns: `1fr`,
+        gridGap: `16px`,
+        paddingBottom: `24px`,
+      }}
+    >
+      <Searchbar onSubmit={handleFormSubmit} />
+      {images.length > 0 && <ImageGallery images={images} />}
+      {loading && <Loader />}
+      {images.length !== 0 && totalPages !== page && !loading && (
+        <Button onClick={incrementPage} />
+      )}
+      <ToastContainer autoClose={3000} />
+    </div>
+  );
+};

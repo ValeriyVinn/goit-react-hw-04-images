@@ -7,12 +7,19 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: rgba(67, 62, 62, 0.2);
+    background-color: rgba(67, 62, 62, 0.6);
     z-index: 1200;
   }
   
   .Modal {
     border: 2px solid royalblue;
+    border-radius: 5px;
+    overflow: hidden;
     max-width: calc(100vw - 48px);
-    max-height: calc(100vh - 24px);
+    height: calc(100vh - 48px);
   }
+
+  .ModalImage {
+    height: 100%;
+  }
+  
